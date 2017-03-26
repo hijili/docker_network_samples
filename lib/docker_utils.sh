@@ -54,17 +54,23 @@ _create_network() {
 
 # arg1: image_name
 # arg2: container_name
-# arg3: list of net_info (option)
-#       "net_info" is defined as {net_name}:{self_ip}
-#       ":{self_ip}" part is option
+# arg3...: list of net_info (option)
+#       "net_info" is defined as {net_name}:{container_ip}
 run_container() {
 	image_name=$1; [ -z "$image_name" ] && return 1
 	cont_name=$2;  [ -z "$cont_name" ] && return 1
-	shift; shift; net_info="$@"
+	shift; shift; net_info=("$@")
 
-	# If "net_info" is not set, connect docker0
+	# If "net_info" is not set, connect on default docker bridge
 	local net_option=
-	[ -n "$net_info" ] && net_option="--net none"
+	if [ -z "$net_info" ]; then
+		net_option="--net bridge"
+	else
+		_info=${net_info[0]}; net_info=("${net_info[@]:1}") # pop
+		_net_name=${_info%:*} ; _self_ip=${_info#*:}
+		net_option="--net $_net_name"
+		[ -n "$_self_ip" ] && net_option=$net_option" --ip $_self_ip"
+	fi
 
 	clean_container $cont_name
 	docker run -d --cap-add NET_ADMIN --cap-add SYS_ADMIN \
@@ -72,9 +78,8 @@ run_container() {
 		$net_option \
 		$image_name /bin/sh -c "while true; do sleep 1; done"
 
-#		--net $net_name --ip $self_ip \
-
-	for _info in $net_info; do
+	# add optional network
+	for _info in ${net_info[@]}; do
 		_net_name=${_info%:*} ; _self_ip=${_info#*:}
 		docker network connect \
 			$( [ -n "$_self_ip" ] && echo -n "--ip $_self_ip" ) \

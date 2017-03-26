@@ -122,7 +122,7 @@ _do_test() {
 }
 _do_test_stop() {
 	for name in node4 node5 nodeE nodeE1 ; do
-		_clean_container $name
+		clean_container $name
 	done
 	docker network rm nodeEnet || :
 }
@@ -132,10 +132,11 @@ do_stop() {
 	[ -f "$conf_file" ] || (echo "$conf_file is illegal!"; exit 1)
 	while read name lan vpn connect; do
 		[[ $name =~ ^# ]] && continue
-		_clean_container $name
+		[ -z "$name" ] && continue
+		clean_container $name
 	done < $conf_file
 
-	_do_test_stop
+	#_do_test_stop
 }
 
 case "$1" in
@@ -148,3 +149,4 @@ case "$1" in
 	*)
 		echo "$0 {build|start|stop}"; exit 1 ;;
 esac
+
