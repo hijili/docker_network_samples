@@ -9,8 +9,8 @@ build_image() {
 # arg1: container name
 clean_container() {
 	local name=$1; [ -z "$name" ] && (echo "input container name"; return 1)
-	[ -n "$(docker ps -q -f name=$name)" ]    && docker stop $name
-	[ -n "$(docker ps -a -q -f name=$name)" ] && docker rm $name
+	[ -n "$(docker ps -q -f name=/$name\$)" ]    && docker stop $name
+	[ -n "$(docker ps -a -q -f name=/$name\$)" ] && docker rm $name
 	return 0
 }
 
@@ -19,10 +19,10 @@ clean_container() {
 # If image name is specified, run container and exec sh.
 login_container() {
 	local name=$1; [ -z "$name" ] && return 1
-	if [ -n "$(docker ps -q -f name=$name)" ]; then
+	if [ -n "$(docker ps -q -f name=/$name\$)" ]; then
 		docker exec -it $name /bin/sh
 	else
-		[ -n "$(docker ps -a -q -f name=$name)" ] && docker rm $name
+		[ -n "$(docker ps -a -q -f name=/$name\$)" ] && docker rm $name
 		docker run --rm -it $name /bin/sh
 	fi
 }
