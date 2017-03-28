@@ -4,26 +4,39 @@
 . ../../lib/docker_utils.sh
 
 do_start() {
-	reset_network internet 192.168.100.254/24
-	reset_network lan 10.0.0.254/24
+	reset_network wan 192.168.100.254/24
+	reset_network lan1 10.0.0.254/24
+	reset_network lan2 100.0.0.254/24 # dummy
 
-	run_container $BASE_IMAGE server internet:192.168.100.100
-	run_container $BASE_IMAGE router internet:192.168.100.1 lan:10.0.0.1
-	run_container $BASE_IMAGE client lan:10.0.0.100
+	run_container $BASE_IMAGE server wan:192.168.100.100
+	run_container $BASE_IMAGE router wan:192.168.100.1 lan1:10.0.0.1
+	run_container $BASE_IMAGE bridge lan1:10.0.0.100 lan2:100.0.0.1
+	run_container $BASE_IMAGE client lan2:100.0.0.2
 
-	docker exec client ip r replace default via 10.0.0.1
 	docker exec router ip r replace default via 192.168.100.254
 	docker exec router iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+	docker exec bridge ip addr flush dev eth0
+	docker exec bridge ip addr flush dev eth1
+	docker exec bridge brctl addbr br0
+	docker exec bridge brctl addif br0 eth0
+	docker exec bridge brctl addif br0 eth1
+	docker exec bridge ip link set br0 up
+
+	docker exec client ip addr flush dev eth0
+	docker exec client ip addr add 10.0.0.200/24 dev eth0
+	docker exec client ip r add default via 10.0.0.1 dev eth0
 }
 
 do_stop() {
 	clean_container server
 	clean_container router
+	clean_container bridge
 	clean_container client
 }
 
 _tproxy() {
-	e="docker exec server"
+	e="docker exec bridge"
 	$e iptables -t mangle -F MY_PROXY || :
 	$e iptables -t mangle -X MY_PROXY || :
 	$e iptables -t mangle -N MY_PROXY
@@ -34,7 +47,7 @@ _tproxy() {
 	$e ip rule add fwmark 1 lookup 333
 	$e ip route add local default dev lo table 333
 
-	docker cp tanuki server:/
+	docker cp tanuki bridge:/
 	#docker exec server ./tanuki
 }
 

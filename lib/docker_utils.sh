@@ -14,16 +14,13 @@ clean_container() {
 	return 0
 }
 
-# arg1: container name | image name
-# If running container is found, exec sh in the container.
-# If image name is specified, run container and exec sh.
+# arg1: container name
 login_container() {
 	local name=$1; [ -z "$name" ] && return 1
 	if [ -n "$(docker ps -q -f name=/$name\$)" ]; then
-		docker exec -it $name /bin/sh
+		docker exec -it $name /bin/bash
 	else
-		[ -n "$(docker ps -a -q -f name=/$name\$)" ] && docker rm $name
-		docker run --rm -it $name /bin/sh
+		echo "$name is not running "
 	fi
 }
 
@@ -47,9 +44,8 @@ _create_network() {
 	#local br_name=$(echo ${net_name/} | sed -e 's/\//:/g') # "/" cannot be used as bridge name
 	local br_name=$(echo ${net_name%/*}) # "/" cannot be used as bridge name
 	docker network create --subnet=$subnet --gateway=${subnet%/*} $net_name \
-		-o com.docker.network.bridge.name=br$br_name
-
-	#-o com.docker.network.bridge.enable_ip_masquerade=false
+		-o com.docker.network.bridge.name=br$br_name \
+		-o com.docker.network.bridge.enable_ip_masquerade=false
 }
 
 # arg1: image_name
@@ -73,7 +69,7 @@ run_container() {
 	fi
 
 	clean_container $cont_name
-	docker run -d --cap-add NET_ADMIN --cap-add SYS_ADMIN \
+	docker run -d --cap-add ALL \
 		--name $cont_name --hostname $cont_name \
 		$net_option \
 		$image_name /bin/sh -c "while true; do sleep 1; done"
