@@ -24,6 +24,14 @@ login_container() {
 	fi
 }
 
+clean_all_user_network() {
+	for net_id in $(docker network ls | awk '{print $2}'); do
+		( [ $net_id = "ID" ] || [ $net_id = "bridge" ] || \
+			[ $net_id = "host" ] || [ $net_id = "none" ] ) && continue
+		docker network rm $net_id || :
+	done
+}
+
 # arg1: network name
 # arg2: subnet (xxx.xxx.xxx.xxx/xx, address is set as gateway)
 reset_network() {

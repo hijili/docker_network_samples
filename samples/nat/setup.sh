@@ -4,11 +4,13 @@
 . ../../lib/docker_utils.sh
 
 do_start() {
-	reset_network internet 192.168.100.254/24
+	clean_all_network
+
+	reset_network wan 192.168.100.254/24
 	reset_network lan 10.0.0.254/24
 
-	run_container $BASE_IMAGE server internet:192.168.100.100
-	run_container $BASE_IMAGE router internet:192.168.100.1 lan:10.0.0.1
+	run_container $BASE_IMAGE server wan:192.168.100.100
+	run_container $BASE_IMAGE router wan:192.168.100.1 lan:10.0.0.1
 	run_container $BASE_IMAGE client lan:10.0.0.100
 
 	docker exec client ip r replace default via 10.0.0.1

@@ -47,6 +47,7 @@ _tproxy() {
 
 	#docker cp tanuki bridge:/
 	#docker exec server ./tanuki
+	docker exec server httpd
 	echo "complete"
 }
 
