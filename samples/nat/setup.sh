@@ -4,7 +4,7 @@
 . ../../lib/docker_utils.sh
 
 do_start() {
-	clean_all_network
+	clean_all_user_network
 
 	reset_network wan 192.168.100.254/24
 	reset_network lan 10.0.0.254/24
@@ -22,22 +22,7 @@ do_stop() {
 	clean_container server
 	clean_container router
 	clean_container client
-}
-
-_tproxy() {
-	e="docker exec server"
-	$e iptables -t mangle -F MY_PROXY || :
-	$e iptables -t mangle -X MY_PROXY || :
-	$e iptables -t mangle -N MY_PROXY
-	$e iptables -t mangle -A PREROUTING -j MY_PROXY
-	$e iptables -t mangle -A MY_PROXY -p tcp --dport 80 \
-		-j TPROXY --tproxy-mark 1 --on-port 30080
-
-	$e ip rule add fwmark 1 lookup 333
-	$e ip route add local default dev lo table 333
-
-	docker cp tanuki server:/
-	#docker exec server ./tanuki
+	clean_all_user_network
 }
 
 case "$1" in
@@ -47,9 +32,8 @@ case "$1" in
 		login_container $2 ;;
 	stop)
 		do_stop $2 ;;
-	test)
-		_tproxy;;
 	*)
 		echo "$0 {start|stop|sh}"; exit 1 ;;
 esac
 
+echo "operation finished!"

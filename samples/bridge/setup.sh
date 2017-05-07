@@ -4,9 +4,11 @@
 . ../../lib/docker_utils.sh
 
 do_start() {
+	clean_all_user_network
+
 	reset_network wan 192.168.100.254/24
 	reset_network lan1 10.0.0.254/24
-	reset_network lan2 100.0.0.254/24 # dummy
+	reset_network lan2 100.0.0.254/24 # dummy. use as L2 bridge
 
 	run_container $BASE_IMAGE server wan:192.168.100.100
 	run_container $BASE_IMAGE router wan:192.168.100.1 lan1:10.0.0.1
@@ -33,32 +35,7 @@ do_stop() {
 	clean_container router
 	clean_container bridge
 	clean_container client
-}
-
-_tproxy() {
-	e="docker exec bridge"
-	$e iptables -t mangle -N MY_PROXY
-	$e iptables -t mangle -A PREROUTING -j MY_PROXY
-	$e iptables -t mangle -A MY_PROXY -p tcp --dport 80 \
-		-j TPROXY --tproxy-mark 1 --on-port 30080
-
-	$e ip rule add fwmark 1 lookup 333
-	$e ip route add local default dev lo table 333
-
-	#docker cp tanuki bridge:/
-	#docker exec server ./tanuki
-	docker exec server httpd
-	echo "complete"
-}
-
-_tproxy_del() {
-	e="docker exec bridge"
-	$e iptables -t mangle -F MY_PROXY || :
-	$e iptables -t mangle -X MY_PROXY || :
-
-	$e ip route del local default dev lo table 333 || :
-	$e ip rule del fwmark 1 lookup 333 || :
-	echo "complete del"
+	clean_all_user_network
 }
 
 case "$1" in
@@ -68,11 +45,8 @@ case "$1" in
 		login_container $2 ;;
 	stop)
 		do_stop $2 ;;
-	test)
-		[ "$2" = add ] && _tproxy
-		[ "$2" = del ] && _tproxy_del
-		;;
 	*)
 		echo "$0 {start|stop|sh}"; exit 1 ;;
 esac
 
+echo "operation finished!"

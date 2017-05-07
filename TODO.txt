@@ -1,24 +1,24 @@
-- setenforce で逃げてる コンテナにてtunデバイスが作れない
-	capabilityの問題ではないよね...
-	docker run -d --cap-add NET_ADMIN --cap-add SYS_ADMIN
 
-ip tunnel add tun1 mode ipip remote 192.168.100.102 local 192.168.100.101
-ip link set tun1 up
-ip addr add 172.0.1.1/24 dev tun1
+- 構成案
 
-ip tunnel add tun2 mode ipip remote 192.168.100.101 local 192.168.100.102
-ip link set tun2 up
-ip addr add 172.0.1.2/24 dev tun2
+README.txt
+Dockerfile
+docker_network.sh {sample_name}
+	build
 
----
+lib/
+	docker-utils.sh
 
-ip tunnel add tun1to2 mode ipip remote 172.0.2.1 local 172.0.1.1
-ifconfig tun1to2 192.168.100.2 netmask 255.255.255.255 pointopoint 192.168.100.3
-ifconfig tun1to2 mtu 1500 up
-ip link set tun1to2 up
+samples/
+	http_server_client/
+	nat/
+	transparent_bridge/
+	openvpn/
+	ipip_vpn/
+	and so on...
 
-ip r add 10.0.2.0/24 dev tun1to2
-
-----
-
-余談 xfrm
+		setup.sh
+			start|create
+			stop|clean
+			update
+			build
