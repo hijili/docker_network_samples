@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 # Copyright (c) 2017 Takashi Hoshino (@hijili2)
 
 . ../../lib/docker_utils.sh
@@ -24,6 +24,8 @@ do_start() {
 	docker exec bridge brctl addif br0 eth0
 	docker exec bridge brctl addif br0 eth1
 	docker exec bridge ip link set br0 up
+	docker exec bridge ip addr add 10.0.0.99/24 dev br0
+	docker exec bridge ip r add default via 10.0.0.1 dev br0
 
 	docker exec client ip addr flush dev eth0
 	docker exec client ip addr add 10.0.0.200/24 dev eth0

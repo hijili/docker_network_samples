@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 # Copyright (c) 2017 Takashi Hoshino (@hijili2)
 # Released under the MIT license
 
@@ -17,6 +17,7 @@ case "$1" in
 	start)
 		[ -z "$2" ] && (echo "Input sample_name!"; exit 1)
 		sample_name=$2
+		ls -1 ./samples | grep -qw $sample_name || (echo "\"$sample_name\" is not exist..."; exit 1)
 		echo $sample_name > $STAT_FILE
 		(cd samples/$sample_name ; ./setup.sh start)
 		;;

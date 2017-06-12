@@ -1,7 +1,9 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 # Copyright (c) 2017 Takashi Hoshino (@hijili2)
 
 . ../../lib/docker_utils.sh
+
+[ "$DEBUG" = "1" ] && set -o xtrace
 
 # subnetから名前を定義する
 _subnet_to_name () {
@@ -80,10 +82,14 @@ do_stop() {
 	while read name wan lan vpn connect; do
 		[[ $name =~ ^# ]] && continue; [ -z "$name" ] && continue
 		clean_container $name
+
+		client_name=client${name#node}
+		clean_container $client_name
 	done < <(echo_config)
 }
 
 show_net() {
+	# thanks for http://asciiflow.com/
 	cat<<EOF
 Network structure
          +--------------------------------+--------------------------------+

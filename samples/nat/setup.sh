@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 # Copyright (c) 2017 Takashi Hoshino (@hijili2)
 
 . ../../lib/docker_utils.sh

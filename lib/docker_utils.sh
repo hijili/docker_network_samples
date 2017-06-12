@@ -1,6 +1,8 @@
 #!/bin/bash
 # Copyright (c) 2017 Takashi Hoshino (@hijili2)
 
+[ "$DEBUG" = "1" ] && set -o xtrace
+
 BASE_IMAGE=hijili/network_base
 build_image() {
 	docker build -t $BASE_IMAGE $1
@@ -12,7 +14,7 @@ reset_network() {
 	local net_name=$1; [ -z "$net_name" ] && ( echo "Input net_name!"; return 1)
 	local subnet=$2; [ -z "$subnet" ] && (echo "Input subnet!"; return 1)
 
-	docker network inspect $net_name >/dev/null 2>&1 && docker network rm $net_name
+	docker network inspect $net_name >/dev/null 2>&1 && docker network rm $net_name >/dev/null 2>&1
 	_create_network $net_name $subnet
 }
 add_network() {
@@ -29,13 +31,13 @@ _create_network() {
 	local br_name=$(echo ${net_name%/*}) # "/" cannot be used as bridge name
 	docker network create --subnet=$subnet --gateway=${subnet%/*} $net_name \
 		-o com.docker.network.bridge.name=br$br_name \
-		-o com.docker.network.bridge.enable_ip_masquerade=false
+		-o com.docker.network.bridge.enable_ip_masquerade=false  >/dev/null 2>&1
 }
 clean_all_user_network() {
 	for net_id in $(docker network ls | awk '{print $2}'); do
 		( [ $net_id = "ID" ] || [ $net_id = "bridge" ] || \
 			[ $net_id = "host" ] || [ $net_id = "none" ] ) && continue
-		docker network rm $net_id || :
+		docker network rm $net_id  >/dev/null 2>&1 || :
 	done
 }
 
@@ -64,7 +66,7 @@ run_container() {
 	docker run -d --cap-add ALL --privileged \
 		--name $cont_name --hostname $cont_name \
 		$net_option \
-		$image_name /bin/sh -c "while true; do sleep 1; done"
+		$image_name /bin/sh -c "while true; do sleep 1; done" > /dev/null 2>&1
 
 	# add optional network
 	for _info in ${net_info[@]}; do
@@ -88,7 +90,7 @@ login_container() {
 # arg1: container name
 clean_container() {
 	local name=$1; [ -z "$name" ] && (echo "input container name"; return 1)
-	[ -n "$(docker ps -q -f name=/$name\$)" ]    && docker stop $name
-	[ -n "$(docker ps -a -q -f name=/$name\$)" ] && docker rm $name
+	[ -n "$(docker ps -q -f name=/$name\$)" ]    && docker stop $name >/dev/null 2>&1
+	[ -n "$(docker ps -a -q -f name=/$name\$)" ] && docker rm $name   >/dev/null 2>&1
 	return 0
 }
