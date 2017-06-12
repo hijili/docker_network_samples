@@ -1,31 +1,36 @@
 # docker_network_samples
 
-Docker単体の機能だけで、ちょっとしたネットワーク環境を作るサンプルです。
+Docker単体の機能だけで、ちょっとしたネットワーク環境を作るサンプルです。  
 Linuxのネットワーク設定周りの動作を確認したいときなどに使えるかもしれません。
-
+  
 "Dockerの使い方備忘録" 的な感は否めません...
 
 
 ## Overview
 
-1. nat
+以下のようなsample環境を作ります
 
-client - router - server な環境
+### nat
+
+client - router - server
 
 
-1. bridge
+### bridge
 
-clinet - bridge - router - server な環境
-    
+clinet - bridge - router - server
+   
 ※実現方法にだいぶ無理矢理感があります...
 
 
-1. ipip_vpn
+### ipip_vpn
 
+~~~
  node2 ==VPN== node1 ==VPN== node3
    |             |             |
 client2       client1       client3
+~~~
 
+※vpnと言っても暗号化無し
 ※configで拡張可能(かもしれない)
 
 
@@ -37,11 +42,12 @@ client2       client1       client3
 
 ## Usage
 
+```
 $ cd docker_network_samples
 
-$ ./docker_network.sh build
+$ sudo ./docker_network.sh build
 
-$ ./docker_network.sh start {SAMPLE_NAME}
+$ sudo ./docker_network.sh start {SAMPLE_NAME}
 
   list of SAMPLE_NAME:
 
@@ -50,5 +56,11 @@ $ ./docker_network.sh start {SAMPLE_NAME}
     ipip_vpn
     nat
 
-$ ./docker_network.sh stop
+$ sudo ./docker_network.sh stop
+```
 
+デバッグ出力が欲しいとき
+
+```
+$ sudo DEBUG=1 ./docker_network.sh start {SAMPLE_NAME}
+```
