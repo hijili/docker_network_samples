@@ -56,6 +56,9 @@ $ sudo ./docker_network.sh start {SAMPLE_NAME}
     ipip_vpn
     nat
 
+コンテナに入る
+$ sudo ./docker_network.sh sh {CONTAINER_NAME}
+
 $ sudo ./docker_network.sh stop
 ```
 
