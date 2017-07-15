@@ -37,7 +37,7 @@ client2       client1       client3
 ## Requirement
 
 - docker > 1.12.6
-- CentOS7 (3.10.0-514.16.1.el7.x86_64) でしか動作確認してません...
+- CentOS7 (Kernel 3.10.0) でしか動作確認してません...
 
 
 ## Usage
