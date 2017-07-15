@@ -63,10 +63,13 @@ run_container() {
 	fi
 
 	clean_container $cont_name
-	docker run -d --cap-add ALL --privileged \
+	docker run -d \
+		--cap-add SYS_MODULE --cap-add SYS_ADMIN \
+		--cap-add NET_ADMIN  --cap-add NET_BIND_SERVICE \
+		--cap-add SYS_PTRACE --cap-add NET_RAW \
 		--name $cont_name --hostname $cont_name \
 		$net_option \
-		$image_name /bin/sh -c "while true; do sleep 1; done" > /dev/null 2>&1
+		$image_name /bin/sh -c "while true; do sleep 1; done" > /dev/null
 
 	# add optional network
 	for _info in ${net_info[@]}; do
