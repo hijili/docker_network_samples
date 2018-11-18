@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/bin/bash -u
 # Copyright (c) 2017 Takashi Hoshino (@hijili2)
 
 [ "$DEBUG" = "1" ] && set -o xtrace
 
 BASE_IMAGE=hijili/network_base
 build_image() {
-	docker build -t $BASE_IMAGE $1
+	docker build -t $BASE_IMAGE .
 }
 
 # arg1: network name
